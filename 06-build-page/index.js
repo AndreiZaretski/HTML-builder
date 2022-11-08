@@ -1,4 +1,5 @@
 const fs = require('fs');
+const fsPromise = require('fs/promises');
 const path = require('path');
 
 const dirProject = path.join(__dirname, 'project-dist');
@@ -12,21 +13,38 @@ function isErr(err) {
 
 fs.mkdir(dirProject, {recursive: true}, isErr);
 
-fs.readdir(path.join(__dirname, 'components'), {withFileTypes: true}, (err, files) =>{
-  isErr(err);
-  fs.readFile(path.join(__dirname, 'template.html'), 'utf-8', (err, data) =>{
-    isErr(err);
-    let template = data.toString();
-    for(let file of files) {
+// fs.readdir(path.join(__dirname, 'components'), {withFileTypes: true}, (err, files) =>{
+//   isErr(err);
+//   fs.readFile(path.join(__dirname, 'template.html'), 'utf-8', (err, data) =>{
+//     isErr(err);
+//     let template = data.toString();
+//     //fs.readFile(path.join(__dirname, 'template.html'));
+//     //.toString();
+//     for(let file of files) {
+//       let fileName = file.name.split('.')[0];
+//       fs.readFile(path.join(__dirname, 'components', file.name), 'utf-8', (err, comp)=>{
+//         isErr(err);
+//         template= template.replace(`{{${fileName}}}`, comp.toString());
+//         fs.writeFile(path.join(dirProject, 'index.html'), template, isErr)
+//       })
+//     }
+//   })
+// })
+
+async function createHtml() {
+  let template = await fsPromise.readFile(path.join(__dirname, 'template.html'));
+  let files = await fsPromise.readdir(path.join(__dirname, 'components'), {withFileTypes: true});
+  let newHtml = template.toString();
+  let htmlComp = '';
+  for (let file of files) {
       let fileName = file.name.split('.')[0];
-      fs.readFile(path.join(__dirname, 'components', file.name), 'utf-8', (err, comp)=>{
-        isErr(err);
-        template= template.replace(`{{${fileName}}}`, comp.toString());
-        fs.writeFile(path.join(dirProject, 'index.html'), template, isErr)
-      })
+      htmlComp = await fsPromise.readFile(path.join(__dirname, 'components', file.name));
+      newHtml = newHtml.replace(`{{${fileName}}}`, htmlComp.toString());
     }
-  })
-})
+  fsPromise.writeFile(path.join(dirProject, 'index.html'), newHtml);
+}
+
+createHtml();
 
 
 function createStyle(err, files) {
@@ -51,8 +69,6 @@ function writeStyles(err, data) {
 fs.readdir(dirStyles, {withFileTypes: true}, createStyle);
 //fs.writeFile(path.join(dirProject, 'style.css'), '', isErr);
 
-
-
 function copyFolder() {
   fs.mkdir(dirAssets, { recursive: true }, isErr);
 
@@ -65,7 +81,7 @@ function copyFolder() {
         } 
       });
 
-      copyAssets(dirCurrent, dirAssets);
+      copyAssets();
     });
   }
 
@@ -84,11 +100,10 @@ function copyFolder() {
                 } 
               })
             })
-          
-           });
+          });
             }
           })
         });
   }
 
-  copyFolder(dirCurrent, dirAssets);
+  copyFolder();
