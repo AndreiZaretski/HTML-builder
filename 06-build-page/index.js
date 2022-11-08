@@ -13,24 +13,6 @@ function isErr(err) {
 
 fs.mkdir(dirProject, {recursive: true}, isErr);
 
-// fs.readdir(path.join(__dirname, 'components'), {withFileTypes: true}, (err, files) =>{
-//   isErr(err);
-//   fs.readFile(path.join(__dirname, 'template.html'), 'utf-8', (err, data) =>{
-//     isErr(err);
-//     let template = data.toString();
-//     //fs.readFile(path.join(__dirname, 'template.html'));
-//     //.toString();
-//     for(let file of files) {
-//       let fileName = file.name.split('.')[0];
-//       fs.readFile(path.join(__dirname, 'components', file.name), 'utf-8', (err, comp)=>{
-//         isErr(err);
-//         template= template.replace(`{{${fileName}}}`, comp.toString());
-//         fs.writeFile(path.join(dirProject, 'index.html'), template, isErr)
-//       })
-//     }
-//   })
-// })
-
 async function createHtml() {
   let template = await fsPromise.readFile(path.join(__dirname, 'template.html'));
   let files = await fsPromise.readdir(path.join(__dirname, 'components'), {withFileTypes: true});
