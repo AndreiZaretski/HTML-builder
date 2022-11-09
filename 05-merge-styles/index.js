@@ -24,7 +24,7 @@ function createStyle(err, files) {
 
 function writeStyles(err, data) {
   isErr(err);
-  fs.appendFile(path.join(dirStylesNew, 'bundle.css'), data, isErr);
+  fs.appendFile(path.join(dirStylesNew, 'bundle.css'), `${data}\n`, isErr);
 }
 
 fs.readdir(dirStyles, {withFileTypes: true}, createStyle);

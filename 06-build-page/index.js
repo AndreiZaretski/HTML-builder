@@ -10,8 +10,10 @@ const dirAssets = path.join(__dirname, 'project-dist', 'assets');
 function isErr(err) {
   if (err) throw err;
 }
-
+// fs.rm(dirProject, { recursive: true, force: true }, ((err) => {
+//   isErr(err);
 fs.mkdir(dirProject, {recursive: true}, isErr);
+//}));
 
 async function createHtml() {
   let template = await fsPromise.readFile(path.join(__dirname, 'template.html'));
@@ -19,9 +21,11 @@ async function createHtml() {
   let newHtml = template.toString();
   let htmlComp = '';
   for (let file of files) {
+    if (file.isFile() && path.extname(file.name) === '.html'){
       let fileName = file.name.split('.')[0];
       htmlComp = await fsPromise.readFile(path.join(__dirname, 'components', file.name));
       newHtml = newHtml.replace(`{{${fileName}}}`, htmlComp.toString());
+    }
     }
   fsPromise.writeFile(path.join(dirProject, 'index.html'), newHtml);
 }
@@ -42,10 +46,10 @@ function createStyle(err, files) {
     }
   }) 
 }
-fs.writeFile(path.join(dirProject, 'style.css'), '',isErr);
+fs.writeFile(path.join(dirProject, 'style.css'), '', isErr);
 function writeStyles(err, data) {
   isErr(err);
-  fs.appendFile(path.join(dirProject, 'style.css'), data, isErr);
+  fs.appendFile(path.join(dirProject, 'style.css'), `${data}\n`, isErr);
 }
 
 fs.readdir(dirStyles, {withFileTypes: true}, createStyle);
@@ -62,9 +66,27 @@ function copyFolder() {
         fs.unlink(path.join(dirAssets, file.name), isErr);
         } 
       });
-
-      copyAssets();
     });
+
+  fs.readdir(dirAssets, { withFileTypes: true },
+    (err, files) => {
+      isErr(err);
+
+      files.forEach(file => {
+        if (file.isDirectory()) {
+          fs.readdir(path.join(dirAssets, file.name),{withFileTypes: true}, (err, items) =>{
+            isErr(err);
+            
+              items.forEach(item =>{
+                if (item.isFile()) {
+                 fs.unlink(path.join(dirProject, 'assets', file.name, item.name), isErr);
+                } 
+              })
+        })
+        } 
+        });
+    });
+    copyAssets();
   }
 
   function copyAssets() {
@@ -83,7 +105,7 @@ function copyFolder() {
               })
             })
           });
-            }
+          }
           })
         });
   }
